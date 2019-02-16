@@ -1,14 +1,21 @@
 <template>
-  <div id="app" class="container-fluid">
-    <h1>{{ customContent }}</h1>
-    <div class="row">
-      
-      <app-search v-on:newsChanged="getNews"></app-search>
 
+  <div id="app" class="container-fluid">
+    <div class="row">
+      <app-search v-on:newsChanged="getNews"></app-search>
+    </div>
+    <div>
+      <label for="title">Title</label>
+      <input type="radio" id="title" value="title"
+        v-model="sortCriteria">
+      <br>
+      <label for="author">Author</label>
+      <input type="radio" id="author" value="author"
+        v-model="sortCriteria">
     </div>
     <div class="row">
       <app-article
-        v-for="newsArticle in articles"
+        v-for="newsArticle in sortedArticles"
         v-bind:data="newsArticle"></app-article>
     </div>
   </div>
@@ -19,55 +26,73 @@
 
 <script>
 // import HelloWorld from './components/HelloWorld.vue'
-import Article from './components/Article.vue';
-import Search from './components/Search.vue';
+import Article from "./components/Article.vue";
+import Search from "./components/Search.vue";
 
 export default {
   data: function() {
     return {
       articles: [],
-      customContent: 'Hello world',
-      searchQ: 'politics'
-    }
+      customContent: "Hello world",
+      searchQ: "politics",
+      sortCriteria: ""
+    };
   },
   methods: {
     getNews: function(query) {
       var that = this;
-      var url = 'https://newsapi.org/v2/everything?' +
-          // 'country=us&' +
-          'q=' + query + '&' +
-          'apiKey=eb85487dcf1d45d5aa52c973e59ad105';
+      var url =
+        "https://newsapi.org/v2/everything?" +
+        // 'country=us&' +
+        "q=" +
+        query +
+        "&" +
+        "apiKey=eb85487dcf1d45d5aa52c973e59ad105";
       var req = new Request(url);
-    
+
       fetch(req)
         .then(function(response) {
-            return response.json();
+          return response.json();
         })
         .then(function(data) {
           console.log(data);
           that.articles = data.articles;
-        })
+        });
 
-       this.searchQ = '';
+      this.searchQ = "";
+      this.sortCriteria = "";
+    },
+    sortBy: function(arr, sortCrit) {
+      return arr.sort(function(a, b) {
+        if (a[sortCrit] > b[sortCrit]) return 1;
+        if (a[sortCrit] < b[sortCrit]) return -1;
+        return 0;
+      });
+    }
+  },
+  computed: {
+    sortedArticles: function() {
+      if (this.sortCriteria) {
+        return this.sortBy(this.articles, this.sortCriteria);
+      }
+      return this.articles;
     }
   },
   components: {
-    'app-article': Article,
-    'app-search': Search
+    "app-article": Article,
+    "app-search": Search
   },
-  mounted: function() {
-
+  mounted() {
     this.getNews(this.searchQ);
-
   }
-}
+};
 </script>
 
 <!-- ____________________________________________ -->
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
